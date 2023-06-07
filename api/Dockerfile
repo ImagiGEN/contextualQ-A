@@ -11,7 +11,7 @@ WORKDIR /app
 # Change working dir to app
 
 ADD main.py requirements.txt /app/
-ADD database /app/database
+ADD utils /app/utils
 # Copy main.py and requirements.txt from local into app dir inside the container
 
 RUN pip install -r requirements.txt
