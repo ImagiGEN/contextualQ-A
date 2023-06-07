@@ -2,7 +2,7 @@
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import relationship
-from utils import models, engine, SessionLocal, schemas, crud
+from utils import models, engine, SessionLocal, schemas, crud, common
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -41,3 +41,22 @@ async def register_user(user: schemas.UserCreate, db: Session = Depends(get_db))
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     return crud.create_user(db=db, user=user)
+
+
+@app.post("/api/v1/user/generate_key")
+async def generate_api_key(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    if not (user.username and
+            user.password and
+            user.cnf_password):
+        raise HTTPException(
+            status_code=404, detail=r"Username and password cannot be empty")
+    db_user = crud.validate_user(db, user=user)
+    if not db_user:
+        raise HTTPException(
+            status_code=404, detail="Forbidden, username and passowrd mismatch")
+    data_to_encode = {
+        "username": user.username,
+        "password": common.get_hashed_password(user.password).decode('utf-8')
+    }
+    access_token = common.create_access_token(data_to_encode)
+    return {"API_ACCESS_TOKEN": access_token}

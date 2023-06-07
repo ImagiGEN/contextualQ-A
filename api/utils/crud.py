@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
-from utils import models, schemas
-import bcrypt
+from utils import models, schemas, common
 
 
 def get_user(db: Session, user_id: int):
@@ -11,17 +10,30 @@ def get_user_by_username(db: Session, username: str):
     return db.query(models.User).filter(models.User.username == username).first()
 
 
+def validate_user(db: Session, user: schemas.UserCreate):
+    hashed_password = common.get_hashed_password(user.password).decode('utf-8')
+    return db.query(models.User).filter(models.User.username == user.username and models.User.hashed_password == hashed_password).first()
+
+
 def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
 
 
+def validate_access_token(db: Session, access_token: str):
+    decoded_data = common.decode_token(access_token)
+    common.compare_time(decoded_data["exp"])
+    username = decoded_data["username"]
+    hashed_password = decoded_data["password"]
+    return db.query(models.User).filter(
+        models.User.username == username and
+        models.User.hashed_password == hashed_password).first()
+
+
 def create_user(db: Session, user: schemas.UserCreate):
-    hashed_password = get_hashed_password(user.password)
-    db_user = models.User(username=user.username, hashed_password=hashed_password)
+    hashed_password = common.get_hashed_password(user.password).decode('utf-8')
+    db_user = models.User(username=user.username,
+                          hashed_password=hashed_password)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
-
-def get_hashed_password(password):
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
