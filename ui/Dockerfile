@@ -6,7 +6,7 @@ WORKDIR /app
 
 COPY main.py requirements.txt ./
 COPY pages ./pages
-# COPY .streamlit ./.streamlit
+COPY utils ./utils
 # Copy source code and dependency
 
 RUN pip install -r requirements.txt
