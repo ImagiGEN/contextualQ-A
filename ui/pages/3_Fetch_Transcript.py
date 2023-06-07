@@ -3,23 +3,6 @@ import streamlit as st
 
 st.title('Fetch Transcripts')
 
-
-@st.cache_data
-def get_station_list():
-    # read following columns in the nexrad station dataset
-    cols = [
-        (20, 51),    # Name
-        (72, 75),    # ST
-        (106, 116),  # Lat
-        (116, 127)   # Lon
-    ]
-    # read the dataset as a pandas dataframe using fixed width format
-    df = pd.read_fwf(
-        r"https://www.ncei.noaa.gov/access/homr/file/nexrad-stations.txt", colspecs=cols, skiprows=[1])
-    # filter rows with are not null
-    df = df[df['ST'].notna()]
-    return df
-
 @st.cache_data
 def get_companies_list():
     # Get list of companies from the database, and associated years

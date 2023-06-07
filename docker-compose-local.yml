@@ -1,0 +1,9 @@
+version: "3.10"
+services:
+  ui:
+      container_name: ui
+      build:
+          context: ui
+      restart: always
+      ports:
+          - "8090:8090"
