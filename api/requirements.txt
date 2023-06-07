@@ -1,0 +1,10 @@
+sqlalchemy
+python-dotenv
+fastapi
+uvicorn
+gunicorn
+psycopg2
+# Dev Dependencies
+httpx
+pytest
+sqlmodel
