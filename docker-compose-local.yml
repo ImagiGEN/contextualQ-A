@@ -1,9 +1,32 @@
 version: "3.10"
 services:
   ui:
-      container_name: ui
-      build:
-          context: ui
-      restart: always
-      ports:
-          - "8090:8090"
+    container_name: ui
+    build:
+        context: ui
+    restart: always
+    ports:
+        - "8090:8090"
+  postgresdb:
+    image: postgres
+    container_name: postgresdb
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    env_file:
+      - .env
+  api:
+    container_name: api
+    build:
+        context: api
+    restart: always
+    ports:
+        - "8095:8095"
+    depends_on:
+      postgresdb:
+        condition: service_healthy
+    env_file:
+      - .env
