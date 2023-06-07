@@ -1,20 +1,23 @@
 import streamlit as st
-
+from utils import backend_api
 API_KEY = None
 
 def generate_api_key():
     # Call Fast API with username and password field return API key
-    api_key = "ALihuiyftydcrcfhgb"
-    return api_key
+    response = backend_api.generate_api_key(username, password)
+    if response.json().get("API_ACCESS_TOKEN"):
+        return f"API KEY: {response.json().get('API_ACCESS_TOKEN')}"
+    else:
+        return f"Unable to generate API key. {response.text}"
     
 
-st.title('User Registration')
+st.title('API Key Generator')
 
 st.subheader("Get API key")
 
-new_user = st.text_input('Username')
-new_passwd = st.text_input('Password',type='password')
+username = st.text_input('Username')
+password = st.text_input('Password',type='password')
 
 if st.button("Generate"):
-    api_key = generate_api_key()
-    st.write(api_key)
+    message = generate_api_key()
+    st.write(message)
