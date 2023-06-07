@@ -30,3 +30,5 @@ services:
         condition: service_healthy
     env_file:
       - .env
+    environment:
+      BACKEND_API_URL: "http://api:8095"
