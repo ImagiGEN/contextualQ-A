@@ -40,14 +40,14 @@ def create_user(db: Session, user: schemas.UserCreate):
 
 def metadata_fetch_company_years(db: Session, skip: int = 0, limit: int = 100):
     db_metadata = db.query(models.CompanyMetadata).offset(skip).limit(limit).all()
-    return db_metadata
+
+    company_names_years = [[row.name, row.year] for row in db_metadata]
+    return company_names_years
 
 def store_company_metadata(db: Session, metadata: schemas.CompanyMetadata):
-    for data in metadata.list:
-        print(data)
-        for year in data[1]:
-            d = models.CompanyMetadata(name=data[0],
+    for name in metadata.company_names_years:
+        for year in metadata.company_names_years[name]:
+            d = models.CompanyMetadata(name=name,
                                        year=year)
             db.add(d)
     db.commit()
-    return True

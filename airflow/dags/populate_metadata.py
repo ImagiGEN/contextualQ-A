@@ -7,6 +7,8 @@ from datetime import timedelta
 from airflow.models.baseoperator import chain
 import requests
 import csv
+import json
+import os
 
 dag = DAG(
     dag_id="metadata_load",
@@ -73,27 +75,31 @@ def get_company_names_with_transcripts(ti):
     ti.xcom_push(key="parsed_directories", value=parsed_directories)
     return parsed_directories
 
-def store_metadata_into_postgres(ti):
+def extract_names_years(ti):
     company_tickers = ti.xcom_pull(key="return_value", task_ids='get_all_company_name_tickers')
     parsed_directories = ti.xcom_pull(key="return_value", task_ids='get_company_names_with_transcripts')
     
     company_names = [dir[-1] for dir in parsed_directories]
+    # common_company_names = [set(company_tickers).intersection(set(company_names))]
+    
     company_names_with_years = {}
     for dir in parsed_directories:
         name, date = dir[-1], dir[0]
         if name in company_names_with_years:
-            company_names_with_years[name].add(date)
+            company_names_with_years[name].add(int(date))
         else:
-            company_names_with_years[name] = set([date])
-    common_company_names = [set(company_tickers).intersection(set(company_names))]
-    # Store these companies and years in Postgres as Metadata
-    for name in common_company_names:
-        db_conn = None
-        add_entry(db_conn, name, date)
+            company_names_with_years[name] = set([int(date)])
+    company_names_with_years = {name:list(years) for name, years in company_names_with_years.items()}
     return company_names_with_years
 
-def add_entry(db_conn, name, date):
-    pass
+def store_metadata_postgres(ti):
+    company_names_with_years = ti.xcom_pull(key="return_value", task_ids='extract_names_years')
+    url = f"{os.getenv('BACKEND_API_URL')}/api/v1/company_metadata/store"
+    json_payload = json.dumps({"company_names_years": company_names_with_years})
+    ti.xcom_push(key="company_names_years", value=json_payload)
+    headers = {'Content-Type': 'application/json'}
+    response = requests.request("POST", url, headers=headers, data=json_payload)
+    return response.text
 
 with dag:
 
@@ -111,13 +117,19 @@ with dag:
         dag=dag,
     )
 
-    store_metadata_into_postgres = PythonOperator(
-        task_id='store_metadata_into_postgres',
-        python_callable=store_metadata_into_postgres,
+    extract_names_years_task = PythonOperator(
+        task_id='extract_names_years',
+        python_callable=extract_names_years,
         provide_context=True,
         dag=dag,
     )
     
+    store_metadata_postgres_task = PythonOperator(
+        task_id='store_metadata_postgres',
+        python_callable=store_metadata_postgres,
+        provide_context=True,
+        dag=dag,
+    )
     # Flow
-    chain([get_data_from_github, get_company_names_with],store_metadata_into_postgres)
+    chain([get_data_from_github, get_company_names_with],extract_names_years_task, store_metadata_postgres_task)
     

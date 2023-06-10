@@ -18,4 +18,4 @@ class User(UserBase):
         orm_mode = True
 
 class CompanyMetadata(BaseModel):
-    list: list
+    company_names_years: dict

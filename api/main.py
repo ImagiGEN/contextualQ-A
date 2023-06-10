@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import relationship
@@ -63,14 +62,10 @@ async def generate_api_key(user: schemas.UserCreate, db: Session = Depends(get_d
 
 @app.post("/api/v1/company_metadata/store")
 async def store_company_metadata(metadata: schemas.CompanyMetadata, db: Session = Depends(get_db)):
-    stored = crud.store_company_metadata(db, metadata=metadata)
-    # if db_user:
-    #     raise HTTPException(status_code=400, detail="Email already registered")
-    return {"stored": stored}
+    crud.store_company_metadata(db, metadata=metadata)
+    return {"message": "Metadata stored successfully"}
 
-@app.post("/api/v1/company_metadata/fetch")
-async def store_company_metadata(metadata: schemas.CompanyMetadata, db: Session = Depends(get_db)):
+@app.get("/api/v1/company_metadata/fetch")
+async def store_company_metadata(db: Session = Depends(get_db)):
     fetched = crud.metadata_fetch_company_years(db)
-    # if db_user:
-    #     raise HTTPException(status_code=400, detail="Email already registered")
-    return {"stored": fetched}
+    return {"company_names_years": fetched}
