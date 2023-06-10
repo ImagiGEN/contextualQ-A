@@ -31,3 +31,11 @@ def generate_api_key(username, password):
 
     response = requests.request("POST", url, headers=headers, data=json_payload)
     return response
+
+def fetch_metadata():
+    url = f"{BACKEND_API_URL}/api/v1/company_metadata/fetch"
+    payload = ""
+    headers = {}
+
+    response = requests.request("GET", url, headers=headers, data=payload)
+    return response.json()

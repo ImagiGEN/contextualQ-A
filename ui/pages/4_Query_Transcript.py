@@ -1,6 +1,6 @@
 import pandas as pd
 import streamlit as st
-
+from utils import backend_api
 st.title('Query Transcripts')
 
 @st.cache_data
@@ -12,7 +12,8 @@ def get_companies_list():
         (106, 116),  # sbert embedding
         (116, 127)   # openAI embedding
     ]
-    df = pd.DataFrame([["APPLE", "2021"], ["APPLE", "2022"],["SAMSUNG", "2022"]], columns = ["CN", "YEAR"])
+    metadata = backend_api.fetch_metadata()
+    df = pd.DataFrame(metadata.get("company_names_years"), columns = ["CN", "YEAR"])
     return df
 
 
