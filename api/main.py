@@ -60,3 +60,17 @@ async def generate_api_key(user: schemas.UserCreate, db: Session = Depends(get_d
     }
     access_token = common.create_access_token(data_to_encode)
     return {"API_ACCESS_TOKEN": access_token}
+
+@app.post("/api/v1/company_metadata/store")
+async def store_company_metadata(metadata: schemas.CompanyMetadata, db: Session = Depends(get_db)):
+    stored = crud.store_company_metadata(db, metadata=metadata)
+    # if db_user:
+    #     raise HTTPException(status_code=400, detail="Email already registered")
+    return {"stored": stored}
+
+@app.post("/api/v1/company_metadata/fetch")
+async def store_company_metadata(metadata: schemas.CompanyMetadata, db: Session = Depends(get_db)):
+    fetched = crud.metadata_fetch_company_years(db)
+    # if db_user:
+    #     raise HTTPException(status_code=400, detail="Email already registered")
+    return {"stored": fetched}

@@ -10,3 +10,10 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
+
+class CompanyMetadata(Base):
+    __tablename__ = "company_metadata"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    year = Column(Integer)
