@@ -16,3 +16,6 @@ class User(UserBase):
 
     class Config:
         orm_mode = True
+
+class CompanyMetadata(BaseModel):
+    list: list

@@ -37,3 +37,17 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.commit()
     db.refresh(db_user)
     return db_user
+
+def metadata_fetch_company_years(db: Session, skip: int = 0, limit: int = 100):
+    db_metadata = db.query(models.CompanyMetadata).offset(skip).limit(limit).all()
+    return db_metadata
+
+def store_company_metadata(db: Session, metadata: schemas.CompanyMetadata):
+    for data in metadata.list:
+        print(data)
+        for year in data[1]:
+            d = models.CompanyMetadata(name=data[0],
+                                       year=year)
+            db.add(d)
+    db.commit()
+    return True
