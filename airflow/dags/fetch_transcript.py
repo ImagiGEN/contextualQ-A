@@ -7,6 +7,9 @@ from datetime import timedelta
 import os
 import requests
 from airflow.models.baseoperator import chain
+from sentence_transformers import SentenceTransformer
+import numpy as np
+import openai
 
 
 # dag declaration
@@ -15,6 +18,7 @@ user_input = {
     "year": Param(default=2015, type='number'),
     "quarter": Param(default=1, type='number'),
     "word_limit": Param(default=500, type='number'),
+    "openai_api_key": Param(type='string'),
 }
 
 
@@ -61,14 +65,25 @@ def get_words_github(**kwargs):
         continue
       words += page.text.split()
 
-    first_500_words = ' '.join(words[:word_limit])
-    return first_500_words
+    first_n_words = ' '.join(words[:word_limit])
+    return first_n_words
 
 def generate_sbert_embeddings(ti):
-   pass
-
-def generate_openai_embeddings(ti):
-   pass
+    model = SentenceTransformer(os.getenv('SBERT_MODEL','sentence-transformers/all-MiniLM-L6-v2'))
+    words_to_encode = ti.xcom_pull(key="return_value", task_ids='get_words_github')
+    embeddings = model.encode(words_to_encode)
+    vector = np.array(embeddings).astype(np.float32).tobytes()
+    return vector
+    
+def generate_openai_embeddings(ti, **kwargs):
+    openai.api_key = kwargs["params"]["openai_api_key"]
+    model_id = os.getenv("OPENAI_ENGINE", "text-embedding-ada-002")
+    words_to_encode = ti.xcom_pull(key="return_value", task_ids='get_words_github')
+    
+    embeddings = openai.Embedding.create(
+        input=words_to_encode,
+        engine=model_id)
+    return embeddings
 
 with dag:
     get_data_from_github_task = PythonOperator(
@@ -92,7 +107,7 @@ with dag:
         dag=dag,
     )
 
-    chain(get_data_from_github_task)
+    chain(get_data_from_github_task, [generate_openai_embeddings_task, generate_sbert_embeddings_task])
 
 # {
 #   "company_name": "LMAT",
