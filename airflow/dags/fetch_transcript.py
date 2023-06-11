@@ -10,6 +10,7 @@ from airflow.models.baseoperator import chain
 from sentence_transformers import SentenceTransformer
 import numpy as np
 import openai
+import redis
 
 
 # dag declaration
@@ -71,9 +72,14 @@ def get_words_github(**kwargs):
 def generate_sbert_embeddings(ti):
     model = SentenceTransformer(os.getenv('SBERT_MODEL','sentence-transformers/all-MiniLM-L6-v2'))
     words_to_encode = ti.xcom_pull(key="return_value", task_ids='get_words_github')
+    print(words_to_encode)
+    ti.xcom_push(key="words_to_encode", value=words_to_encode)
     embeddings = model.encode(words_to_encode)
+    print(type(embeddings), embeddings)
     vector = np.array(embeddings).astype(np.float32).tobytes()
-    return vector
+    print(type(vector), vector)
+    return embeddings.tolist()
+    # return embeddings
     
 def generate_openai_embeddings(ti, **kwargs):
     openai.api_key = kwargs["params"]["openai_api_key"]
@@ -82,12 +88,40 @@ def generate_openai_embeddings(ti, **kwargs):
     
     embeddings = openai.Embedding.create(
         input=words_to_encode,
-        engine=model_id)
+        engine=model_id)['data'][0]['embedding']
     return embeddings
+
+def save_data_to_redis(ti, **kwargs): 
+    company_name = kwargs['params']['company_name'] 
+    year = kwargs['params']['year'] 
+    quarter = kwargs['params']['quarter'] 
+     
+    plain_text = ti.xcom_pull(key="return_value", task_ids='get_words_github') 
+    sbert_embeddings = ti.xcom_pull(key="return_value", task_ids='generate_sbert_embeddings') 
+    sbert_vector = np.array(sbert_embeddings).astype(np.float32).tobytes()
+
+    openai_embeddings = ti.xcom_pull(key="return_value", task_ids='generate_openai_embeddings') 
+    openai_vector = np.array(openai_embeddings).astype(np.float32).tobytes()
+    r = redis.Redis(host=os.getenv("REDIS_DB_HOST", 'redis-stack'),  # Local redis error 
+                    port= os.getenv("REDIS_DB_PORT", "6379"), 
+                    username=os.getenv("REDIS_DB_USERNAME", ""), 
+                    password=os.getenv("REDIS_DB_PASSWORD", ""), 
+                    decode_responses=True 
+                    ) 
+    data = { 
+        "year" : year, 
+        "quarter" : quarter, 
+        "plain_text" : plain_text, 
+        "sbert_embeddings": sbert_vector, 
+        "openai_embeddings": openai_vector 
+    } 
+    r.hset(f"{company_name}:{year}_{quarter}", mapping=data) 
+    r.close() 
+    return "Data saved to redis" 
 
 with dag:
     get_data_from_github_task = PythonOperator(
-        task_id='get_data_from_github',
+        task_id='get_words_github',
         python_callable=get_words_github,
         provide_context=True,
         dag=dag,
@@ -107,7 +141,13 @@ with dag:
         dag=dag,
     )
 
-    chain(get_data_from_github_task, [generate_openai_embeddings_task, generate_sbert_embeddings_task])
+    save_data_to_redis_task = PythonOperator( 
+        task_id='save_data_to_redis', 
+        python_callable=save_data_to_redis, 
+        provide_context=True, 
+        dag=dag, 
+    ) 
+    chain(get_data_from_github_task, [generate_openai_embeddings_task, generate_sbert_embeddings_task], save_data_to_redis_task) 
 
 # {
 #   "company_name": "LMAT",

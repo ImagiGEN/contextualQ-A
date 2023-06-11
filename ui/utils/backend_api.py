@@ -3,7 +3,7 @@ import requests
 import os
 
 BACKEND_API_URL = os.getenv("BACKEND_API_URL", "http://api:8095")
-
+AIRFLOW_API_URL = os.getenv("AIRFLOW_API_URL", "http://")
 
 headers = {'Content-Type': 'application/json'}
 
@@ -33,6 +33,14 @@ def generate_api_key(username, password):
     return response
 
 def fetch_metadata():
+    url = f"{BACKEND_API_URL}/api/v1/company_metadata/fetch"
+    payload = ""
+    headers = {}
+
+    response = requests.request("GET", url, headers=headers, data=payload)
+    return response.json()
+
+def run_fetch_transcript_dag():
     url = f"{BACKEND_API_URL}/api/v1/company_metadata/fetch"
     payload = ""
     headers = {}
