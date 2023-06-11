@@ -28,8 +28,10 @@ df = get_companies_list()
 filter_companies = st.multiselect(label='Company', options=list(
     df['CN'].sort_values().unique()))
 
-# filter_years = st.multiselect(label='Year', options=list(
-#     df[df['CN'].isin(filter_companies)]['YEAR'].sort_values().unique()))
+filter_years = st.multiselect(label='Year', options=list(
+    df[df['CN'].isin(filter_companies)]['YEAR'].sort_values().unique()))
+
+filter_quarter = st.multiselect(label='Year', options=[1,2,3,4])
 
 # show raw data if user wants
 # if st.checkbox('Show raw data'):

@@ -251,7 +251,17 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-  
+  redis-stack: 
+    image:  redis/redis-stack:latest 
+    container_name: redis-stack 
+    ports: 
+        - "30001:6379"  
+        - "30002:8001" 
+    volumes: 
+      - redis-stack-data:/data 
+    restart: always 
+    env_file:
+      - .env
   ui:
     container_name: ui
     build:
@@ -259,6 +269,8 @@ services:
     restart: always
     ports:
         - "8090:8090"
+    env_file:
+      - .env
   postgresdb:
     image: postgres
     container_name: postgresdb
@@ -287,3 +299,4 @@ services:
 
 volumes:
   postgres-db-volume:
+  redis-stack-data: 
