@@ -85,6 +85,7 @@ def extract_names_years(ti):
     company_names_with_years = {}
     for dir in parsed_directories:
         name, date = dir[-1], dir[0]
+        date = date[:4]
         if name in company_names_with_years:
             company_names_with_years[name].add(int(date))
         else:

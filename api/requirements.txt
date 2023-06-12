@@ -10,3 +10,4 @@ pytest
 sqlmodel
 bcrypt
 python-jose
+requests
