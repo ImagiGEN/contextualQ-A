@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import relationship
-from utils import models, engine, SessionLocal, schemas, crud, common
+from utils import models, engine, SessionLocal, schemas, crud, common, pipeline
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -69,3 +69,15 @@ async def store_company_metadata(metadata: schemas.CompanyMetadata, db: Session 
 async def store_company_metadata(db: Session = Depends(get_db)):
     fetched = crud.metadata_fetch_company_years(db)
     return {"company_names_years": fetched}
+
+@app.post("/api/v1/transcripts/embedd")
+async def run_dag(userInput: schemas.FetchTranscript, db: Session = Depends(get_db)):
+    crud.validate_access_token(db=db, access_token=userInput.api_key)
+    crud.validate_openai_api_key(api_key=userInput.openai_api_key)
+    response = pipeline.trigger_fetch_transcript(userInput=userInput)
+    return response
+
+@app.post("/api/v1/dag/fetch_metadata")
+async def run_dag_fetch_metadata():
+    response = pipeline.trigger_fetch_metadata_dag()
+    return response

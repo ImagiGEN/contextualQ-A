@@ -271,6 +271,9 @@ services:
         - "8090:8090"
     env_file:
       - .env
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
   postgresdb:
     image: postgres
     container_name: postgresdb

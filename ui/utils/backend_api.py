@@ -3,7 +3,6 @@ import requests
 import os
 
 BACKEND_API_URL = os.getenv("BACKEND_API_URL", "http://api:8095")
-AIRFLOW_API_URL = os.getenv("AIRFLOW_API_URL", "http://")
 
 headers = {'Content-Type': 'application/json'}
 
@@ -40,10 +39,27 @@ def fetch_metadata():
     response = requests.request("GET", url, headers=headers, data=payload)
     return response.json()
 
-def run_fetch_transcript_dag():
-    url = f"{BACKEND_API_URL}/api/v1/company_metadata/fetch"
-    payload = ""
-    headers = {}
+def trigger_fetch_transcript(company_name, year, quarter, word_limit, api_key, openai_api_key):
+    url = f"{BACKEND_API_URL}/api/v1/transcripts/embedd"
+    payload = {
+                "company_name": company_name,
+                "year": int(year),
+                "quarter": int(quarter),
+                "word_limit": int(word_limit),
+                "openai_api_key": openai_api_key,
+                "api_key": api_key
+            }
 
-    response = requests.request("GET", url, headers=headers, data=payload)
-    return response.json()
+    json_payload = json.dumps(payload)
+
+    response = requests.request("POST", url, headers=headers, data=json_payload)
+    return response.text
+
+def trigger_fetch_metadata():
+    url = f"{BACKEND_API_URL}/api/v1/dag/fetch_metadata"
+    payload = {}
+
+    json_payload = json.dumps(payload)
+
+    response = requests.request("POST", url, headers=headers, data=json_payload)
+    return response.text

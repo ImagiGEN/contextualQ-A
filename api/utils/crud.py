@@ -28,6 +28,8 @@ def validate_access_token(db: Session, access_token: str):
         models.User.username == username and
         models.User.hashed_password == hashed_password).first()
 
+def validate_openai_api_key(api_key):
+    return True
 
 def create_user(db: Session, user: schemas.UserCreate):
     hashed_password = common.get_hashed_password(user.password).decode('utf-8')

@@ -7,31 +7,29 @@ st.title('Fetch Transcripts')
 @st.cache_data
 def get_companies_list():
     # Get list of companies from the database, and associated years
-    cols = [
-        (20, 51),    # Company
-        (72, 75),    # Year
-        (106, 116),  # sbert embedding
-        (116, 127)   # openAI embedding
-    ]
     metadata = backend_api.fetch_metadata()
     df = pd.DataFrame(metadata.get("company_names_years"), columns = ["CN", "YEAR"])
     return df
 
 def run_dag():
-    # Run Airflow DAG for selected companies
-    pass
+    response = backend_api.trigger_fetch_transcript(company_name, year, quarter, word_limit, api_key, openai_api_key)
+    st.write(response)
 
 data_load_state = st.text('Loading ...')
 df = get_companies_list()
 
 # select the unique companies for user to filter
-filter_companies = st.multiselect(label='Company', options=list(
+company_name = st.selectbox(label='Company', options=list(
     df['CN'].sort_values().unique()))
 
-filter_years = st.multiselect(label='Year', options=list(
-    df[df['CN'].isin(filter_companies)]['YEAR'].sort_values().unique()))
+year = st.selectbox(label='Year', options=list(
+    df[df['CN']==company_name]['YEAR'].sort_values().unique()))
 
-filter_quarter = st.multiselect(label='Year', options=[1,2,3,4])
+quarter = st.selectbox(label='Quarter', options=[1,2,3,4])
+
+word_limit = st.number_input('Word limit per quarter', min_value=50, max_value=500)
+api_key = st.text_input('API Key')
+openai_api_key = st.text_input('OpenAI API Key')
 
 # show raw data if user wants
 # if st.checkbox('Show raw data'):
