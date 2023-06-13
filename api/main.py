@@ -81,3 +81,9 @@ async def run_dag(userInput: schemas.FetchTranscript, db: Session = Depends(get_
 async def run_dag_fetch_metadata():
     response = pipeline.trigger_fetch_metadata_dag()
     return response
+
+@app.get("/api/v1/transcripts/query")
+async def query(userInput: schemas.QueryTranscript, db: Session = Depends(get_db)):
+    crud.validate_openai_api_key(api_key=userInput.openai_api_key)
+    result = pipeline.get_vss_results(userInput.query, userInput.embedding, userInput.openai_api_key)
+    return {"summary": result}

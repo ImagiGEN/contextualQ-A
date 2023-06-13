@@ -27,3 +27,10 @@ class FetchTranscript(BaseModel):
     api_key: str
     openai_api_key: str
     word_limit: int
+
+class QueryTranscript(BaseModel):
+    query: str
+    openai_api_key: str
+    api_key: str
+    word_limit: int
+    embedding: str
