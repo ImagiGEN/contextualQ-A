@@ -37,6 +37,7 @@ def fetch_metadata():
     headers = {}
 
     response = requests.request("GET", url, headers=headers, data=payload)
+    print("Fetch metadata API response:", response.text)
     return response.json()
 
 def trigger_fetch_transcript(company_name, year, quarter, word_limit, api_key, openai_api_key):
@@ -53,7 +54,9 @@ def trigger_fetch_transcript(company_name, year, quarter, word_limit, api_key, o
     json_payload = json.dumps(payload)
 
     response = requests.request("POST", url, headers=headers, data=json_payload)
-    return response.text
+    if response.status_code != 200:
+        return {"message": "Failed to queue the fetch transcript"}
+    return {"message": "Queued fetch transcript DAG"}
 
 def trigger_fetch_metadata():
     url = f"{BACKEND_API_URL}/api/v1/dag/fetch_metadata"
@@ -77,4 +80,4 @@ def generate_summary(query, word_limit, api_key, openai_api_key, embedding):
     json_payload = json.dumps(payload)
 
     response = requests.request("GET", url, headers=headers, data=json_payload)
-    return response.text
+    return response.json()
