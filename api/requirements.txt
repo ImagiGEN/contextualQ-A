@@ -11,3 +11,7 @@ sqlmodel
 bcrypt
 python-jose
 requests
+sentence_transformers
+numpy
+openai
+redis

@@ -11,6 +11,9 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 import openai
 import redis
+from redis.commands.search.field import VectorField, TextField
+from redis.commands.search.indexDefinition import IndexDefinition, IndexType
+
 
 
 # dag declaration
@@ -79,7 +82,6 @@ def generate_sbert_embeddings(ti):
     vector = np.array(embeddings).astype(np.float32).tobytes()
     print(type(vector), vector)
     return embeddings.tolist()
-    # return embeddings
     
 def generate_openai_embeddings(ti, **kwargs):
     openai.api_key = kwargs["params"]["openai_api_key"]
@@ -115,8 +117,19 @@ def save_data_to_redis(ti, **kwargs):
         "sbert_embeddings": sbert_vector, 
         "openai_embeddings": openai_vector 
     } 
+    SCHEMA = [
+         TextField("date"),
+         TextField("plain_text"),
+         VectorField("sbert_embeddings", "HNSW", {"TYPE": "FLOAT32", "DIM": 1536, "DISTANCE_METRIC": "COSINE"}),
+         VectorField("openai_embeddings", "HNSW", {"TYPE": "FLOAT32", "DIM": 1536, "DISTANCE_METRIC": "COSINE"}),
+         ]
     r.hset(f"{company_name}:{year}_{quarter}", mapping=data) 
-    r.close() 
+    r.close()
+    # Create the index
+    try:
+        r.ft("embeddings").create_index(fields=SCHEMA, definition=IndexDefinition(prefix=["embedd:"], index_type=IndexType.HASH))
+    except Exception as e:
+        print("Index already exists")
     return "Data saved to redis" 
 
 with dag:

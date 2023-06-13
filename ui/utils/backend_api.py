@@ -63,3 +63,18 @@ def trigger_fetch_metadata():
 
     response = requests.request("POST", url, headers=headers, data=json_payload)
     return response.text
+
+def generate_summary(query, word_limit, api_key, openai_api_key, embedding):
+    url = f"{BACKEND_API_URL}/api/v1/transcripts/query"
+    payload = {
+                "word_limit": int(word_limit),
+                "openai_api_key": openai_api_key,
+                "api_key": api_key,
+                "query": query,
+                "embedding": embedding
+            }
+
+    json_payload = json.dumps(payload)
+
+    response = requests.request("GET", url, headers=headers, data=json_payload)
+    return response.text
