@@ -71,6 +71,10 @@ def get_vss_results(query_string, embedding_type, openai_api_key):
     except Exception as e:
         print("Error calling Redis search: ", e)
         return None
-    
-    print(results)
-    return results
+    to_return = []
+    for i, embedd in enumerate(results.docs):
+        score = 1 - float(embedd.vector_score)
+        print(f"\t{i}. {embedd.plain_text} (Score: {round(score ,3) })")
+        to_return.append(f"\t{i}. {embedd.plain_text} (Score: {round(score ,3) })")
+    print("Return text from search: ", to_return)
+    return to_return

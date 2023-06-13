@@ -79,8 +79,8 @@ def generate_sbert_embeddings(ti):
     ti.xcom_push(key="words_to_encode", value=words_to_encode)
     embeddings = model.encode(words_to_encode)
     print(type(embeddings), embeddings)
-    vector = np.array(embeddings).astype(np.float32).tobytes()
-    print(type(vector), vector)
+    # vector = np.array(embeddings).astype(np.float32).tobytes()
+    # print(type(vector), vector)
     return embeddings.tolist()
     
 def generate_openai_embeddings(ti, **kwargs):
@@ -120,16 +120,23 @@ def save_data_to_redis(ti, **kwargs):
     SCHEMA = [
          TextField("date"),
          TextField("plain_text"),
-         VectorField("sbert_embeddings", "HNSW", {"TYPE": "FLOAT32", "DIM": 1536, "DISTANCE_METRIC": "COSINE"}),
-         VectorField("openai_embeddings", "HNSW", {"TYPE": "FLOAT32", "DIM": 1536, "DISTANCE_METRIC": "COSINE"}),
+         VectorField("sbert_embeddings", "FLAT", {"TYPE": "FLOAT32", "DIM": 384, "DISTANCE_METRIC": "COSINE"}),
+         VectorField("openai_embeddings", "FLAT", {"TYPE": "FLOAT32", "DIM": 1536, "DISTANCE_METRIC": "COSINE"}),
          ]
-    r.hset(f"{company_name}:{year}_{quarter}", mapping=data) 
-    r.close()
-    # Create the index
+    r.hset(f"post:{company_name}:{year}_{quarter}", mapping=data) 
+    
+    if r.exists("embeddings"):
+        r.ft.drop_index("embeddings")
+        # r.zadd("embeddings", SCHEMA)
+        
     try:
-        r.ft("embeddings").create_index(fields=SCHEMA, definition=IndexDefinition(prefix=["embedd:"], index_type=IndexType.HASH))
+        r.ft("embeddings").create_index(fields=SCHEMA, definition=IndexDefinition(prefix=["post:"], index_type=IndexType.HASH))
     except Exception as e:
         print("Index already exists")
+
+    r.close()
+   
+    # Create the index
     return "Data saved to redis" 
 
 with dag:

@@ -13,9 +13,9 @@ def get_companies_list():
 
 def run_dag():
     response = backend_api.trigger_fetch_transcript(company_name, year, quarter, word_limit, api_key, openai_api_key)
-    st.write(response)
+    st.write(response.get("message"))
 
-data_load_state = st.text('Loading ...')
+# data_load_state = st.text('Loading ...')
 df = get_companies_list()
 
 # select the unique companies for user to filter
@@ -38,4 +38,4 @@ openai_api_key = st.text_input('OpenAI API Key')
 
 st.button("Fetch Data", on_click=run_dag)
 
-data_load_state.text("Done!")
+# data_load_state.text("Done!")

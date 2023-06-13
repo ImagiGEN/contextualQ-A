@@ -22,7 +22,7 @@ def generate_summary():
     result = backend_api.generate_summary(query_text, top_n, api_key, openai_api_key, embedding)
     st.write(result)
 
-data_load_state = st.text('Loading ...')
+# data_load_state = st.text('Loading ...')
 # df = get_companies_list()
 
 # # select the unique companies for user to filter
@@ -47,4 +47,4 @@ top_n = st.number_input('How many transcripts?',min_value=5, max_value=10)
 st.button("Search", on_click=generate_summary)
 
 
-data_load_state.text("Done!")
+# data_load_state.text("Done!")
