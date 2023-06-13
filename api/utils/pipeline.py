@@ -8,10 +8,11 @@ import openai
 from sentence_transformers import SentenceTransformer
 from redis.commands.search.query import Query
 import numpy as np
-
+import logging
 
 AIRFLOW_API_URL = os.getenv("AIRFLOW_API_URL", "http://localhost:8080/api/v1")
 
+logger = logging.getLogger(__name__)
 
 def trigger_fetch_transcript(userInput: schemas.FetchTranscript):
     url = f"{AIRFLOW_API_URL}/dags/fetch_transcript/dagRuns"
@@ -42,7 +43,13 @@ def trigger_fetch_metadata_dag():
 
 def get_vss_results(query_string, embedding_type, openai_api_key):
     # Redis connection details
-    redis_client = redis.Redis(host='localhost', port=6379, db=0)
+   
+    redis_client = redis.Redis(host=os.getenv("REDIS_DB_HOST", 'redis-stack'),  # Local redis error 
+                    port= os.getenv("REDIS_DB_PORT", "6379"), 
+                    username=os.getenv("REDIS_DB_USERNAME", ""), 
+                    password=os.getenv("REDIS_DB_PASSWORD", ""), 
+                    decode_responses=True 
+                    )
     if embedding_type=='openai':
         # Vectorize the query using OpenAI's text-embedding-ada-002 model
         openai.api_key = openai_api_key
@@ -75,6 +82,7 @@ def get_vss_results(query_string, embedding_type, openai_api_key):
     for i, embedd in enumerate(results.docs):
         score = 1 - float(embedd.vector_score)
         print(f"\t{i}. {embedd.plain_text} (Score: {round(score ,3) })")
+        logger.info(f"\t{i}. {embedd.plain_text} (Score: {round(score ,3) })")
         to_return.append(f"\t{i}. {embedd.plain_text} (Score: {round(score ,3) })")
     print("Return text from search: ", to_return)
     return to_return
