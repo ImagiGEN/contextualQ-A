@@ -8,7 +8,8 @@ In this assignment, our team will be working on building a contextual search app
 ## Project Tree 
 
 ## Link to the Live Applications
-- Streamlit Application : 
+- Streamlit Application : http://35.196.112.47:8090 
+- Airflow : http://35.196.112.47:8080/login/?next=http%3A%2F%2F35.196.112.47%3A8080%2Fhome
 
 ## Logs Example
 
