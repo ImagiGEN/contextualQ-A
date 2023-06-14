@@ -112,7 +112,7 @@ def save_data_to_redis(ti, **kwargs):
                     decode_responses=True 
                     ) 
     folder_names = ti.xcom_pull(key="folder_names", task_ids='get_words_github') 
-    datekey = folder_names.split("_")
+    datekey = folder_names[0]
 
     year= datekey.split('_')[0][:4]
     month= datekey.split('_')[0][4:6]
@@ -132,7 +132,7 @@ def save_data_to_redis(ti, **kwargs):
         NumericField("date"),
         NumericField("month"),
         NumericField("year"),
-        TextField("date"),
+        TextField("company_ticker"),
         TextField("plain_text"),
         VectorField("sbert_embeddings", "FLAT", {"TYPE": "FLOAT32", "DIM": 384, "DISTANCE_METRIC": "COSINE"}),
         VectorField("openai_embeddings", "FLAT", {"TYPE": "FLOAT32", "DIM": 1536, "DISTANCE_METRIC": "COSINE"}),

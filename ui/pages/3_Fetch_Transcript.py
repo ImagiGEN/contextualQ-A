@@ -13,7 +13,11 @@ def get_companies_list():
 
 def run_dag():
     response = backend_api.trigger_fetch_transcript(company_name, year, quarter, word_limit, api_key, openai_api_key)
-    st.write(response.get("message"))
+    return response.get("message")
+
+def fetch_transcript():
+    response = backend_api.fetch_transcript(company_name, year, quarter, api_key)
+    return response
 
 # data_load_state = st.text('Loading ...')
 df = get_companies_list()
@@ -29,13 +33,14 @@ quarter = st.selectbox(label='Quarter', options=[1,2,3,4])
 
 word_limit = st.number_input('Word limit per quarter', min_value=50, max_value=500)
 api_key = st.text_input('API Key')
-openai_api_key = st.text_input('OpenAI API Key')
 
 # show raw data if user wants
 # if st.checkbox('Show raw data'):
 #     st.subheader('Raw data')
 #     st.write(df[df['CN'].isin(filter_companies) & df['YEAR'].isin(filter_years)].sort_values(by='CN'))
 
-st.button("Fetch Data", on_click=run_dag)
+if st.button("Fetch Transcript"):
+    response = fetch_transcript()
+    st.write(response)
 
 # data_load_state.text("Done!")

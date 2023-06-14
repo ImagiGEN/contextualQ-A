@@ -98,6 +98,7 @@ def generate_summary_years(query, start_year, end_year, word_limit, api_key, ope
 
     response = requests.request("GET", url, headers=headers, data=json_payload)
     return response.json()
+
 def generate_summary_company(query, company_name, word_limit, api_key, openai_api_key, embedding):
     url = f"{BACKEND_API_URL}/api/v1/transcripts/query_company"
     payload = {
@@ -112,4 +113,20 @@ def generate_summary_company(query, company_name, word_limit, api_key, openai_ap
     json_payload = json.dumps(payload)
 
     response = requests.request("GET", url, headers=headers, data=json_payload)
+    return response.json()
+
+def fetch_transcript(company_name, year, quarter, api_key):
+    url = f"{BACKEND_API_URL}/api/v1/transcripts/fetch"
+    payload = {
+            "company_name": company_name,
+            "year": int(year),
+            "quarter": int(quarter),
+            "api_key": api_key,
+        }
+
+    json_payload = json.dumps(payload)
+
+    response = requests.request("GET", url, headers=headers, data=json_payload)
+    if response.status_code != 200:
+        return "Unable to fetch transcripts"
     return response.json()

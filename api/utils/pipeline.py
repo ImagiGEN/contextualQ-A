@@ -9,12 +9,13 @@ from sentence_transformers import SentenceTransformer
 from redis.commands.search.query import Query
 import numpy as np
 import logging
+import json
 
 AIRFLOW_API_URL = os.getenv("AIRFLOW_API_URL", "http://localhost:8080/api/v1")
 
 logger = logging.getLogger(__name__)
 
-def trigger_fetch_transcript(userInput: schemas.FetchTranscript):
+def trigger_fetch_transcript(userInput: schemas.EmbeddTranscript):
     url = f"{AIRFLOW_API_URL}/dags/fetch_transcript/dagRuns"
     data = {
         "conf": {
@@ -30,6 +31,21 @@ def trigger_fetch_transcript(userInput: schemas.FetchTranscript):
     if response.status_code != 200:
         return {"message": f"Internal Server Error {response.text}"}
     return {"message": "Fetching transcript", "details": response.text}
+
+def fetch_transcript(userInput: schemas.FetchTranscript):
+    redis_client = redis.Redis(host=os.getenv("REDIS_DB_HOST", 'redis-stack'),  # Local redis error 
+                port= os.getenv("REDIS_DB_PORT", "6379"), 
+                username=os.getenv("REDIS_DB_USERNAME", ""), 
+                password=os.getenv("REDIS_DB_PASSWORD", ""), 
+                )
+    # Fetch a single key
+    key= 'post:'+str(userInput.company_name)+':'+str(userInput.year)+'_'+str(userInput.quarter)
+    data = redis_client.hgetall(key)
+    # Convert byte strings to regular strings
+    decoded_data = {key.decode('latin-1'): value.decode('latin-1') for key, value in data.items()}
+    # decoded_data = {base64.b64decode(key).decode("latin-1"): base64.b64decode(value).decode("latin-1") for key, value in data.items()}
+    response = {"Transcript": json.dumps(decoded_data.get('plain_text'))}
+    return response
 
 def trigger_fetch_metadata_dag():
     url = f"{AIRFLOW_API_URL}/dags/metadata_load/dagRuns"
@@ -105,7 +121,7 @@ def get_vss_hybrid_year_results(query_string, start_year, end_year, api, apikey)
         embeddings = model.encode(query_string)
         # Convert the vector to a numpy array
         query_vector = np.array(embeddings).astype(np.float32).tobytes()
-        base_query = "(@year:["+start_year+" "+end_year+"])=>[KNN 5 @sbert_embeddings $vector AS vector_score]"
+        base_query = "(@year:["+str(start_year)+" "+str(end_year)+"])=>[KNN 5 @sbert_embeddings $vector AS vector_score]"
 
 
     print(base_query)

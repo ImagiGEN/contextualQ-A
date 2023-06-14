@@ -71,10 +71,16 @@ async def store_company_metadata(db: Session = Depends(get_db)):
     return {"company_names_years": fetched}
 
 @app.post("/api/v1/transcripts/embedd")
-async def run_dag(userInput: schemas.FetchTranscript, db: Session = Depends(get_db)):
+async def run_dag(userInput: schemas.EmbeddTranscript, db: Session = Depends(get_db)):
     crud.validate_access_token(db=db, access_token=userInput.api_key)
     crud.validate_openai_api_key(api_key=userInput.openai_api_key)
     response = pipeline.trigger_fetch_transcript(userInput=userInput)
+    return response
+
+@app.get("/api/v1/transcripts/fetch")
+async def fetch_transcript(userInput: schemas.FetchTranscript, db: Session = Depends(get_db)):
+    crud.validate_access_token(db=db, access_token=userInput.api_key)
+    response = pipeline.fetch_transcript(userInput=userInput)
     return response
 
 @app.post("/api/v1/dag/fetch_metadata")
