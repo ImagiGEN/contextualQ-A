@@ -81,3 +81,35 @@ def generate_summary(query, word_limit, api_key, openai_api_key, embedding):
 
     response = requests.request("GET", url, headers=headers, data=json_payload)
     return response.json()
+
+def generate_summary_years(query, start_year, end_year, word_limit, api_key, openai_api_key, embedding):
+    url = f"{BACKEND_API_URL}/api/v1/transcripts/query_year"
+    payload = {
+                "word_limit": int(word_limit),
+                "openai_api_key": openai_api_key,
+                "start_year": start_year,
+                "end_year": end_year,
+                "api_key": api_key,
+                "query": query,
+                "embedding": embedding
+            }
+
+    json_payload = json.dumps(payload)
+
+    response = requests.request("GET", url, headers=headers, data=json_payload)
+    return response.json()
+def generate_summary_company(query, company_name, word_limit, api_key, openai_api_key, embedding):
+    url = f"{BACKEND_API_URL}/api/v1/transcripts/query_company"
+    payload = {
+                "word_limit": int(word_limit),
+                "openai_api_key": openai_api_key,
+                "company": company_name,
+                "api_key": api_key,
+                "query": query,
+                "embedding": embedding
+            }
+
+    json_payload = json.dumps(payload)
+
+    response = requests.request("GET", url, headers=headers, data=json_payload)
+    return response.json()

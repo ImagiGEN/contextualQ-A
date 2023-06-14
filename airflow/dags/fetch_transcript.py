@@ -11,7 +11,7 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 import openai
 import redis
-from redis.commands.search.field import VectorField, TextField
+from redis.commands.search.field import VectorField, TextField, NumericField
 from redis.commands.search.indexDefinition import IndexDefinition, IndexType
 
 
@@ -52,13 +52,14 @@ def folder_names_with_date(year, quarter, company):
         current_date += datetime.timedelta(days=1)
     return folder_names
 
-def get_words_github(**kwargs):
+def get_words_github(ti, **kwargs):
     company_name = kwargs['params']['company_name']
     year = kwargs['params']['year']
     quarter = kwargs['params']['quarter']
     word_limit = kwargs['params']['word_limit']
 
     folder_names = folder_names_with_date(year, quarter, company_name)
+    ti.xcom_push(key="folder_names", value=folder_names)
 
     words = []
 
@@ -110,18 +111,31 @@ def save_data_to_redis(ti, **kwargs):
                     password=os.getenv("REDIS_DB_PASSWORD", ""), 
                     decode_responses=True 
                     ) 
+    folder_names = ti.xcom_pull(key="folder_names", task_ids='get_words_github') 
+    datekey = folder_names.split("_")
+
+    year= datekey.split('_')[0][:4]
+    month= datekey.split('_')[0][4:6]
+    date= datekey.split('_')[0][-2:]
+
     data = { 
+        "date" : date,
+        "month": month,
         "year" : year, 
         "quarter" : quarter, 
+        "company_ticker": company_name,
         "plain_text" : plain_text, 
         "sbert_embeddings": sbert_vector, 
         "openai_embeddings": openai_vector 
     } 
     SCHEMA = [
-         TextField("date"),
-         TextField("plain_text"),
-         VectorField("sbert_embeddings", "FLAT", {"TYPE": "FLOAT32", "DIM": 384, "DISTANCE_METRIC": "COSINE"}),
-         VectorField("openai_embeddings", "FLAT", {"TYPE": "FLOAT32", "DIM": 1536, "DISTANCE_METRIC": "COSINE"}),
+        NumericField("date"),
+        NumericField("month"),
+        NumericField("year"),
+        TextField("date"),
+        TextField("plain_text"),
+        VectorField("sbert_embeddings", "FLAT", {"TYPE": "FLOAT32", "DIM": 384, "DISTANCE_METRIC": "COSINE"}),
+        VectorField("openai_embeddings", "FLAT", {"TYPE": "FLOAT32", "DIM": 1536, "DISTANCE_METRIC": "COSINE"}),
          ]
     r.hset(f"post:{company_name}:{year}_{quarter}", mapping=data) 
     

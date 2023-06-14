@@ -34,3 +34,10 @@ class QueryTranscript(BaseModel):
     api_key: str
     word_limit: int
     embedding: str
+
+class QueryTranscriptYear(QueryTranscript):
+    start_year: int
+    end_year: int
+
+class QueryTranscriptCompany(QueryTranscript):
+    company: str
