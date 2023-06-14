@@ -33,14 +33,22 @@ quarter = st.selectbox(label='Quarter', options=[1,2,3,4])
 
 word_limit = st.number_input('Word limit per quarter', min_value=50, max_value=500)
 api_key = st.text_input('API Key')
+<<<<<<< HEAD
+=======
+openai_api_key = st.text_input('OpenAI API Key')
+>>>>>>> 8ca125572995c4d3f00225a81d27a9f8d6fc28dc
 
 # show raw data if user wants
 # if st.checkbox('Show raw data'):
 #     st.subheader('Raw data')
 #     st.write(df[df['CN'].isin(filter_companies) & df['YEAR'].isin(filter_years)].sort_values(by='CN'))
 
+<<<<<<< HEAD
 if st.button("Fetch Transcript"):
     response = fetch_transcript()
     st.write(response)
+=======
+st.button("Fetch Data", on_click=run_dag)
+>>>>>>> 8ca125572995c4d3f00225a81d27a9f8d6fc28dc
 
 # data_load_state.text("Done!")

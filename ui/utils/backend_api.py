@@ -98,7 +98,6 @@ def generate_summary_years(query, start_year, end_year, word_limit, api_key, ope
 
     response = requests.request("GET", url, headers=headers, data=json_payload)
     return response.json()
-
 def generate_summary_company(query, company_name, word_limit, api_key, openai_api_key, embedding):
     url = f"{BACKEND_API_URL}/api/v1/transcripts/query_company"
     payload = {
