@@ -87,3 +87,15 @@ async def query(userInput: schemas.QueryTranscript, db: Session = Depends(get_db
     crud.validate_openai_api_key(api_key=userInput.openai_api_key)
     result = pipeline.get_vss_results(userInput.query, userInput.embedding, userInput.openai_api_key)
     return {"summary": result}
+    
+@app.get("/api/v1/transcripts/query_year")
+async def query(userInput: schemas.QueryTranscriptYear, db: Session = Depends(get_db)):
+    crud.validate_openai_api_key(api_key=userInput.openai_api_key)
+    result = pipeline.get_vss_hybrid_year_results(userInput.query, userInput.start_year, userInput.end_year, userInput.embedding, userInput.openai_api_key)
+    return {"summary": result}
+
+@app.get("/api/v1/transcripts/query_company")
+async def query(userInput: schemas.QueryTranscriptCompany, db: Session = Depends(get_db)):
+    crud.validate_openai_api_key(api_key=userInput.openai_api_key)
+    result = pipeline.get_vss_hybrid_company_results(userInput.query, userInput.company, userInput.embedding, userInput.openai_api_key)
+    return {"summary": result}
