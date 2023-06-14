@@ -128,6 +128,6 @@ def fetch_transcript(company_name, year, quarter, api_key):
     response = requests.request("GET", url, headers=headers, data=json_payload)
     if response.status_code != 200:
         return "Unable to fetch transcripts"
-    if response.json().get("Transcript") == None:
-        return "Transcript doesn't exist for this entry. Please try for other quarters."
+    if not response.json().get("Transcript") or response.json().get("Transcript") == "null":
+        return "Transcript doesn't exist for this entry. Please try for other companies and/or quarters."
     return response.json()
