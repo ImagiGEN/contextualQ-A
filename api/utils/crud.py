@@ -43,7 +43,7 @@ def create_user(db: Session, user: schemas.UserCreate):
 def metadata_fetch_company_years(db: Session, skip: int = 0, limit: int = 100):
     db_metadata = db.query(models.CompanyMetadata).offset(skip).limit(limit).all()
 
-    company_names_years = [[row.name, row.year] for row in db_metadata if row.name in ["ACIW", "LMAT", "LPNT", "CHUY", "FTNT"]]
+    company_names_years = [[row.name, row.year] for row in db_metadata]
     return company_names_years
 
 def store_company_metadata(db: Session, metadata: schemas.CompanyMetadata):
