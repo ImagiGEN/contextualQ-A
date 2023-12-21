@@ -1,4 +1,4 @@
-# Assignment1
+# ContextualQ-A
 Application to aid research of investment analysts by searching through earnings call transcripts, to periodically upload text datasets, and providing features to filter by company and year.
 
 ## Project Resources
@@ -53,10 +53,3 @@ In this assignment, our team will be working on building a contextual search app
         ├── __init__.py
         └── backend_api.py
 ```
-
-## Contributions
-| Contributor    | Work |
-| -------- | ------- |
-| Ashritha Goramane  | Backend API, Integration, and Deployment    |
-| Parvati Sohani | Frontend and Documentation   |
-| Rishabh Indoria    | Data extraction, Embedding, and Search |
